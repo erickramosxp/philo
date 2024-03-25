@@ -17,5 +17,6 @@ typedef struct s_philo
 }					t_philos;
 
 int					ft_atoi(const char *nptr);
+int					ft_isdigit(int c);
 
 #endif
