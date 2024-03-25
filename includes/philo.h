@@ -13,7 +13,7 @@ typedef struct s_philo
 	pthread_t		philo;
 	pthread_mutex_t	fork;
 	bool			sleep;
-	struct philo	*next;
+	struct s_philo	*next;
 }					t_philos;
 
 int					ft_atoi(const char *nptr);
