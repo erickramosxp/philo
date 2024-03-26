@@ -1,5 +1,5 @@
 NAME = philo
-SRCS = ft_atoi.c
+SRCS = utils.c
 FLAGS = -Wall -Wextra -Werror
 
 NAME: all

@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "./includes/philo.h"
-#include <stdio.h>
 
 int	verif_is_numeric(char *args)
 {
@@ -43,16 +42,68 @@ int	valid_args(int argc, char **args)
 	return (1);
 }
 
-int	main(int argc, char **argv)
+long int	get_real_time(void)
 {
 	struct timeval	tv;
+	long int		time;
+
+	gettimeofday(&tv, NULL);
+	time = (tv.tv_sec * 1000000) + tv.tv_usec;
+	return (time);
+}
+
+void	init_infos(t_table *infos, char **args)
+{
+	infos->nb_philo = ft_atoi(args[1]) * 1000;
+	infos->time_die = ft_atoi(args[2]) * 1000;
+	infos->time_eat = ft_atoi(args[3]) * 1000;
+	infos->time_sleep = ft_atoi(args[4]) * 1000;
+	infos->time_start = get_real_time();
+	infos->philo = NULL;
+}
+
+void	start_philos(t_philos *philo, int qtd_philos)
+{
+	int			i;
+	t_philos	*new_philo;
+	t_philos	*prev;
+	t_philos	*head;
+
+	i = 0;
+	prev = NULL;
+	new_philo = malloc(sizeof(t_philos));
+	if (!new_philo)
+		return ;
+	head = new_philo;
+	while (i < qtd_philos)
+	{
+		philo = new_philo;
+		philo->previous = prev;
+		if (prev)
+			prev->next = philo;
+		prev = philo;
+		i++;
+		if (i < qtd_philos)
+		{
+			new_philo = malloc(sizeof(t_philos));
+			philo = philo->next;
+		}
+	}
+	philo->next = head;
+	head->previous = philo;
+}
+
+int main(int argc, char **argv)
+{
+	t_table infos;
 
 	if (!valid_args(argc - 1, argv + 1))
 	{
 		printf("Error\n");
 		return (0);
 	}
-	gettimeofday(&tv, NULL);
-	printf("%ld %ld", tv.tv_sec, tv.tv_usec / 100);
+	init_infos(&infos, argv);
+	start_philos(infos.philo, infos.nb_philo);
+	printf("%ld\n%ld\n", infos.time_die, infos.time_start);
 	return (0);
 }
