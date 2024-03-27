@@ -31,8 +31,8 @@ int	valid_args(int argc, char **args)
 	int	i;
 
 	i = 0;
-/*	if (argc < 4 || argc > 5)
-		return (0);*/
+	if (argc < 4 || argc > 5)
+		return (0);
 	while (args[i])
 	{
 		if (!verif_is_numeric(args[i]))
@@ -91,20 +91,6 @@ t_philos	*start_philos(int qtd_philos)
 	philo->next = head;
 	head->previous = philo;
 	return (philo);
-/*	i = 1;
-	while (i <= 7)
-	{
-		philo->index = i;
-		philo = philo->next;
-		i++;
-	}
-	i = 1;
-	while (i <= 7)
-	{
-		printf("%d\n", philo->index);
-		philo = philo->next;
-		i++;
-	}*/
 }
 
 void	index_philos(t_philos *philo, int qtd_philos)
@@ -132,15 +118,12 @@ int main(int argc, char **argv)
 	init_infos(&infos, argv);
 	infos.philo = start_philos(infos.nb_philo);
 	index_philos(infos.philo, infos.nb_philo);
-	//printf("%ld\n%ld\n", infos.time_die, infos.time_start);
-	int	i;
-
-	i = 1;
-	while (i <= infos.nb_philo)
+	printf("%ld\n%ld\n%ld\n%ld", infos.time_start, infos.time_die, infos.time_eat, infos.time_sleep);
+/*	while (1)
 	{
-		printf("%d", infos.philo->index);
-		infos.philo = infos.philo->previous;
-		i++;
-	}
+		printf("%d\n", infos.philo->index);
+		infos.philo = infos.philo->next;
+		usleep(1000000);
+	}*/
 	return (0);
 }

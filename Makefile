@@ -5,7 +5,7 @@ FLAGS = -Wall -Wextra -Werror
 NAME: all
 
 all:
-	cc $(FLAGS) $(SRCS) main.c
+	cc $(FLAGS) $(addprefix src/, $(SRCS)) main.c
 clean:
 
 fclean:
