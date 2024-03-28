@@ -49,6 +49,7 @@ long int	get_real_time(void)
 
 	gettimeofday(&tv, NULL);
 	time = (tv.tv_sec * 1000000) + tv.tv_usec;
+//	free(tv);
 	return (time);
 }
 
@@ -58,7 +59,7 @@ void	init_infos(t_table *infos, char **args)
 	infos->time_die = ft_atoi(args[2]) * 1000;
 	infos->time_eat = ft_atoi(args[3]) * 1000;
 	infos->time_sleep = ft_atoi(args[4]) * 1000;
-	infos->time_start = get_real_time();
+//	infos->time_start = get_real_time();
 	infos->philo = NULL;
 }
 
@@ -106,6 +107,21 @@ void	index_philos(t_philos *philo, int qtd_philos)
 	}
 }
 
+void	free_list(t_philos *philo)
+{
+	t_philos *temp;
+	t_philos *aux;
+
+	temp = philo->next;
+	while (temp != philo)
+	{
+		aux = temp->next;
+		free(temp);
+		temp = aux;
+	}
+	free(philo);
+}
+
 int main(int argc, char **argv)
 {
 	t_table infos;
@@ -118,12 +134,13 @@ int main(int argc, char **argv)
 	init_infos(&infos, argv);
 	infos.philo = start_philos(infos.nb_philo);
 	index_philos(infos.philo, infos.nb_philo);
-	printf("%ld\n%ld\n%ld\n%ld", infos.time_start, infos.time_die, infos.time_eat, infos.time_sleep);
+//	printf("%ld\n%ld\n%ld\n%ld", infos.time_start, infos.time_die, infos.time_eat, infos.time_sleep);
 /*	while (1)
 	{
 		printf("%d\n", infos.philo->index);
 		infos.philo = infos.philo->next;
 		usleep(1000000);
 	}*/
+	free_list(infos.philo);
 	return (0);
 }
