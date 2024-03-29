@@ -10,11 +10,21 @@
 # include <stdlib.h>
 # include <unistd.h>
 
+typedef enum status{
+	LIVE,
+	DIE,
+	EAT,
+	SLEEP,
+	THINK
+} status;
+
 typedef struct s_philo
 {
 	int				index;
+	int				status;
 	pthread_t		philo;
 	pthread_mutex_t	fork;
+	long int		last_time_eat;
 	struct s_philo	*previous;
 	struct s_philo	*next;
 }					t_philos;
