@@ -11,8 +11,8 @@
 # include <unistd.h>
 
 typedef enum status{
-	LIVE,
 	DIE,
+	LIVE,
 	EAT,
 	SLEEP,
 	THINK
