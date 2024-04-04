@@ -141,27 +141,35 @@ void	free_list(t_philos *philo)
 
 void philo_eat(t_table *infos)
 {
-	int	get_fork;
-
-	if (!infos->philo->index % 2)
-		usleep(10000);
-	get_fork = pthread_mutex_lock(&infos->philo->fork);
-	if (get_fork)
+	if (infos->philo->index % 2 == 0)
 	{
-		printf("\n%d\n", get_fork);
-		return ;
+		pthread_mutex_lock(&infos->philo->fork);
+		printf("%ld Filósofo %d pegou o garfo da direita um.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
 	}
-	printf("%ld Filósofo %d pegou o garfo.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
-	if (!get_fork)
+	else
 	{
 		pthread_mutex_lock(&infos->philo->previous->fork);
-		printf("%ld Filósofo %d pegou o garfo.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
-		printf("%ld Filósofo %d está comendo.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
-		usleep(infos->time_eat);
-		pthread_mutex_unlock(&infos->philo->fork);
-		infos->philo->last_time_eat = get_real_time();
+		printf("%ld Filósofo %d pegou o garfo da esquerda um.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
 	}
-		pthread_mutex_unlock(&infos->philo->previous->fork);
+	
+
+	if (infos->philo->index % 2 == 0)
+	{
+		pthread_mutex_lock(&infos->philo->previous->fork);
+		printf("%ld Filósofo %d pegou o garfo da esquerda dois.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
+	}
+	else
+	{
+		pthread_mutex_lock(&infos->philo->fork);
+		printf("%ld Filósofo %d pegou o garfo da direita dois.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
+	}
+
+	printf("%ld Filósofo %d está comendo.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
+	usleep(infos->time_eat);
+	infos->philo->last_time_eat = get_real_time();
+	pthread_mutex_unlock(&infos->philo->fork);
+	pthread_mutex_unlock(&infos->philo->previous->fork);
+	//usleep(100);
 }
 void	philo_sleep(t_table *infos)
 {
@@ -172,7 +180,7 @@ void	philo_sleep(t_table *infos)
 void	philo_think(t_table *infos)
 {
 	printf("%ld Filósofo %d está pensando.\n", (get_real_time() - infos->time_start) / 1000, infos->philo->index);
-	usleep(100);
+	usleep(50);
 }
 
 
@@ -184,6 +192,8 @@ void	*filosofo(void *arg)
 
 	infos = (t_table *)arg;
 	philo = infos->philo;
+	if (!infos->philo->index % 2)
+		usleep(2000);
 	while (philo->status)
 	{
 		if (((get_real_time() - philo->last_time_eat) > infos->time_die) && philo->status != 0)
@@ -192,9 +202,9 @@ void	*filosofo(void *arg)
 			printf("%ld Filósofo %d esta morto.\n", (get_real_time() - infos->time_start) / 1000, philo->index);
 			infos->nb_philo--;
 		}
+		philo_think(infos);
 		philo_eat(infos);
 		philo_sleep(infos);
-		philo_think(infos);
 	}
 /*	if (philo->status == 0)
 	{
@@ -223,9 +233,17 @@ void	init_threads(t_table *infos)
 	while (i < infos->nb_philo)
 	{
 		pthread_create(&infos->philo->philo, NULL, filosofo, infos);
-		pthread_detach(infos->philo->philo);
+	//	pthread_detach(infos->philo->philo);
+		usleep(50);
 	//	usleep(10000);
 	//	pthread_join(infos->philo->philo, NULL);
+		infos->philo = infos->philo->next;
+		i++;
+	}
+	i = 0;
+	while (i < infos->nb_philo)
+	{
+		pthread_join(infos->philo->philo, NULL);
 		infos->philo = infos->philo->next;
 		i++;
 	}
@@ -244,8 +262,8 @@ int main(int argc, char **argv)
 	infos.philo = start_philos(infos.nb_philo);
 	index_philos(infos.philo, infos.nb_philo);
 	init_threads(&infos);
-	while (1)
-	{}
+	/*while (1)
+	{}*/
 	free_list(infos.philo);
 	return (0);
 }
