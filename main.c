@@ -148,14 +148,18 @@ void philo_eat(t_philos *philo, t_table *infos)
 }
 void	philo_sleep(t_philos *philo, t_table *infos)
 {
+	int new_time;
+
 	printf("%ld %d is sleeping\n", (get_real_time() - infos->time_start) / 1000, philo->index);
-	usleep(infos->time_sleep);
+	new_time = get_real_time() + infos->time_sleep;
+	while (get_real_time() < new_time)
+		usleep(100);
 }
 
 void	philo_think(t_philos *philo, t_table *infos)
 {
 	printf("%ld %d is thinking\n", (get_real_time() - infos->time_start) / 1000, philo->index);
-	usleep(infos->time_eat);
+	usleep(50);
 }
 
 
@@ -170,12 +174,6 @@ void	*filosofo(void *arg)
 		usleep(2000);
 	while (philo->status)
 	{
-		if (((get_real_time() - philo->last_time_eat) > infos->time_die) && philo->status != 0)
-		{
-			philo->status = 0;
-			printf("%ld %d died\n\n\n", (get_real_time() - infos->time_start) / 1000, philo->index);
-			infos->nb_philo--;
-		}
 		philo_think(philo, infos);
 		philo_eat(philo, infos);
 		philo_sleep(philo, infos);
@@ -204,6 +202,29 @@ void	init_threads(t_table *infos)
 		infos->philo = infos->philo->next;
 		i++;
 	}
+	pthread_join(infos->monitor, NULL);
+}
+
+void	*philos_monitoring(void *arg)
+{
+	t_philos	*philo;
+	t_table	*infos;
+
+	infos = (t_table *)arg;
+	philo = infos->philo;
+	while (1)
+	{
+		if (((get_real_time() - philo->last_time_eat) > infos->time_die) && philo->status != 0)
+		{
+			philo->status = 0;
+			printf("%ld %d died\n", (get_real_time() - infos->time_start) / 1000, philo->index);
+			infos->nb_philo--;
+		}
+		if (!infos->nb_philo)
+			break ;
+		philo = philo->next;
+	}
+	return (NULL);
 }
 
 int main(int argc, char **argv)
@@ -214,13 +235,12 @@ int main(int argc, char **argv)
 	{
 		printf("Error\n");
 		return (0);
-	}
+	} 	
 	init_infos(&infos, argv);
 	infos.philo = start_philos(infos.nb_philo);
 	index_philos(infos.philo, infos.nb_philo);
+	pthread_create(&infos.monitor, NULL, philos_monitoring, &infos);
 	init_threads(&infos);
-	/*while (1)
-	{}*/
 	free_list(infos.philo);
 	return (0);
 }

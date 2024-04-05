@@ -37,6 +37,7 @@ typedef struct s_table
 	long int	time_sleep;
 	int			times_must_eat;
 	long int	time_start;
+	pthread_t	monitor;
 	t_philos	*philo;
 }					t_table;
 
