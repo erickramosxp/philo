@@ -21,6 +21,7 @@ typedef enum status{
 typedef struct s_philo
 {
 	int				index;
+	int				can_eat;
 	int				status;
 	pthread_t		philo;
 	pthread_mutex_t	fork;
