@@ -26,6 +26,7 @@ typedef struct s_philo
 	pthread_t		philo;
 	pthread_mutex_t	fork;
 	long int		last_time_eat;
+	int				i_eat;
 	struct s_philo	*previous;
 	struct s_philo	*next;
 }					t_philos;
@@ -37,6 +38,8 @@ typedef struct s_table
 	long int	time_eat;
 	long int	time_sleep;
 	int			times_must_eat;
+	int			can_eat;
+	int			flag_can_eat;
 	long int	time_start;
 	pthread_t	monitor;
 	t_philos	*philo;

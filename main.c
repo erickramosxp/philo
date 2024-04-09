@@ -51,17 +51,26 @@ long int	get_real_time(void)
 
 	gettimeofday(&tv, NULL);
 	time = (tv.tv_sec * 1000000) + tv.tv_usec;
-	//	free(tv);
 	return (time);
 }
 
-void	init_infos(t_table *infos, char **args)
+void	init_infos(t_table *infos, char **args, int argc)
 {
 	infos->nb_philo = ft_atoi(args[1]);
 	infos->time_die = ft_atoi(args[2]) * 1000;
 	infos->time_eat = ft_atoi(args[3]) * 1000;
 	infos->time_sleep = ft_atoi(args[4]) * 1000;
 	infos->time_start = get_real_time();
+	if (argc == 6)
+	{
+		infos->times_must_eat = ft_atoi(args[5]);
+		infos->flag_can_eat = 1;
+	}
+	else
+	{
+		infos->times_must_eat = -1;
+		infos->flag_can_eat = 0;
+	}
 	infos->philo = NULL;
 }
 
@@ -106,6 +115,7 @@ void	index_philos(t_philos *philo, int qtd_philos)
 		philo->index = i;
 		philo->status = 1;
 		philo->can_eat = 0;
+		philo->i_eat = 0;
 		philo->last_time_eat = get_real_time();
 		pthread_mutex_init(&philo->fork, NULL);
 		philo = philo->next;
@@ -149,24 +159,29 @@ void	philo_eat(t_philos *philo, t_table *infos)
 {
 	if (!philo->status)
 		return ;
-	pthread_mutex_lock(&philo->previous->fork);
-	printf("%ld %d  has taken a fork\n", (get_real_time() - infos->time_start)
-		/ 1000, philo->index);
-	pthread_mutex_lock(&philo->fork);
+	usleep(100);
 	if (philo->status)
 	{
-		printf("%ld %d has taken a fork\n", (get_real_time() - infos->time_start)
+		pthread_mutex_lock(&philo->previous->fork);
+		printf("%ld %d  has taken a fork\n", (get_real_time() - infos->time_start)
 			/ 1000, philo->index);
-		printf("%ld %d is eating\n", (get_real_time() - infos->time_start) / 1000,
-			philo->index);
-		philo->status = 2;
-		new_sleep(infos->time_eat);
-	//	usleep(infos->time_eat);
-		philo->last_time_eat = get_real_time();
-		pthread_mutex_unlock(&philo->fork);
-		pthread_mutex_unlock(&philo->previous->fork);
-		philo->status = 1;
+		pthread_mutex_lock(&philo->fork);
+		if (infos->nb_philo > 1)
+		{
+			printf("%ld %d has taken a fork\n", (get_real_time() - infos->time_start)
+				/ 1000, philo->index);
+			printf("%ld %d is eating\n", (get_real_time() - infos->time_start) / 1000,
+				philo->index);
+			philo->status = 2;
+			new_sleep(infos->time_eat);
+		//	usleep(infos->time_eat);
+			philo->last_time_eat = get_real_time();
+			pthread_mutex_unlock(&philo->fork);
+			pthread_mutex_unlock(&philo->previous->fork);
+			philo->status = 1;
+		}
 	}
+	philo->i_eat++;
 	// usleep(100);
 }
 void	philo_sleep(t_philos *philo, t_table *infos)
@@ -177,8 +192,9 @@ void	philo_sleep(t_philos *philo, t_table *infos)
 		return ;
 	printf("%ld %d is sleeping\n", (get_real_time() - infos->time_start) / 1000,
 		philo->index);
-	new_sleep(infos->time_sleep);
-/*	new_time = get_real_time() + infos->time_sleep;
+	usleep(infos->time_sleep);
+	/*new_sleep(infos->time_sleep);
+	new_time = get_real_time() + infos->time_sleep;
 	while (get_real_time() < new_time)
 		usleep(infos->time_sleep);*/
 }
@@ -203,11 +219,17 @@ void	*filosofo(void *arg)
 		usleep(3000);
 	while (philo->status)
 	{
-		philo_eat(philo, infos);
+		if (philo->i_eat == infos->times_must_eat)
+		{
+			philo->status = 0;
+			break;
+		}
+		if (philo->status)
+			philo_think(philo, infos);
+		if (philo->status)
+			philo_eat(philo, infos);
 		if (philo->status)
 			philo_sleep(philo, infos);
-		if (philo->status)	
-			philo_think(philo, infos);
 		usleep(100);
 		if (!philo->status)
 			break ;
@@ -260,6 +282,23 @@ int	long_time_without_eating(t_table *infos)
 	return (index);
 }
 
+int all_philos_eat(t_table *infos)
+{
+	t_philos *philos;
+	int		amount_philos_eat;
+
+	philos = infos->philo;
+	amount_philos_eat = 0;
+	while (amount_philos_eat < (*infos).nb_philo)
+	{
+		if (philos->i_eat != infos->times_must_eat)
+			return (0);
+		philos = philos->next;
+		amount_philos_eat++;
+	}
+	return (1);
+}
+
 void	*philos_monitoring(void *arg)
 {
 	t_philos	*philo;
@@ -269,6 +308,7 @@ void	*philos_monitoring(void *arg)
 	philo = infos->philo;
 	while (1)
 	{
+		//printf("\n\n%d\n\n", philo->index);
 		if (((get_real_time() - philo->last_time_eat) > infos->time_die)
 			&& philo->status != 0 && philo->status != 2)
 		{
@@ -276,14 +316,23 @@ void	*philos_monitoring(void *arg)
 			printf("%ld %d died\n", (get_real_time() - infos->time_start)
 				/ 1000, philo->index);
 			infos->nb_philo--;
+			usleep(500);
 			pthread_mutex_unlock(&philo->fork);
 			pthread_mutex_unlock(&philo->previous->fork);
-			usleep(100);
+		}
+		if (infos->times_must_eat == philo->i_eat)
+		{
+			//printf("\nEu sou o filosofo %d eu comi %d vezes comforme a entrada %d\n", philo->index, philo->i_eat, infos->can_eat);
+			philo->status = 0;
 		}
 		if (!infos->nb_philo)
 			break ;
+		if ((infos->flag_can_eat == 1) && all_philos_eat(infos))
+			break ;
 		philo = philo->next;
 	}
+	philo = philo->next;
+	philo->status = 0;
 	return (NULL);
 }
 
@@ -296,7 +345,7 @@ int	main(int argc, char **argv)
 		printf("Error\n");
 		return (0);
 	}
-	init_infos(&infos, argv);
+	init_infos(&infos, argv, argc);
 	infos.philo = start_philos(infos.nb_philo);
 	index_philos(infos.philo, infos.nb_philo);
 	pthread_create(&infos.monitor, NULL, philos_monitoring, &infos);
