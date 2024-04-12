@@ -133,11 +133,12 @@ void	free_list(t_philos *philo)
 	temp = philo->next;
 	while (temp != philo)
 	{
+		usleep(500);
 		aux = temp->next;
 		printf("free no %d\n", temp->index);
-		pthread_mutex_destroy(&temp->fork);
+		if (pthread_mutex_destroy(&temp->fork))
+			printf("Eu filosofo %d não fui destruido.\n", aux->index);
 		free(temp);
-		usleep(500);
 		temp = aux;
 	}
 	printf("free no %d\n", philo->index);
@@ -166,7 +167,7 @@ void	philo_eat(t_philos *philo, t_table *infos)
 		printf("%ld %d  has taken a fork\n", (get_real_time() - infos->time_start)
 			/ 1000, philo->index);
 		pthread_mutex_lock(&philo->fork);
-		if (infos->nb_philo > 1)
+		if (infos->nb_philo > 1 && philo->status)
 		{
 			printf("%ld %d has taken a fork\n", (get_real_time() - infos->time_start)
 				/ 1000, philo->index);
@@ -176,12 +177,12 @@ void	philo_eat(t_philos *philo, t_table *infos)
 			new_sleep(infos->time_eat);
 		//	usleep(infos->time_eat);
 			philo->last_time_eat = get_real_time();
+			philo->i_eat++;
+			philo->status = 1;
 			pthread_mutex_unlock(&philo->fork);
 			pthread_mutex_unlock(&philo->previous->fork);
-			philo->status = 1;
 		}
 	}
-	philo->i_eat++;
 	// usleep(100);
 }
 void	philo_sleep(t_philos *philo, t_table *infos)
@@ -193,10 +194,6 @@ void	philo_sleep(t_philos *philo, t_table *infos)
 	printf("%ld %d is sleeping\n", (get_real_time() - infos->time_start) / 1000,
 		philo->index);
 	usleep(infos->time_sleep);
-	/*new_sleep(infos->time_sleep);
-	new_time = get_real_time() + infos->time_sleep;
-	while (get_real_time() < new_time)
-		usleep(infos->time_sleep);*/
 }
 
 void	philo_think(t_philos *philo, t_table *infos)
@@ -308,15 +305,14 @@ void	*philos_monitoring(void *arg)
 	philo = infos->philo;
 	while (1)
 	{
-		//printf("\n\n%d\n\n", philo->index);
 		if (((get_real_time() - philo->last_time_eat) > infos->time_die)
 			&& philo->status != 0 && philo->status != 2)
 		{
 			philo->status = 0;
+			usleep(3500);
 			printf("%ld %d died\n", (get_real_time() - infos->time_start)
 				/ 1000, philo->index);
 			infos->nb_philo--;
-			usleep(500);
 			pthread_mutex_unlock(&philo->fork);
 			pthread_mutex_unlock(&philo->previous->fork);
 		}
@@ -348,9 +344,9 @@ int	main(int argc, char **argv)
 	init_infos(&infos, argv, argc);
 	infos.philo = start_philos(infos.nb_philo);
 	index_philos(infos.philo, infos.nb_philo);
-	pthread_create(&infos.monitor, NULL, philos_monitoring, &infos);
+	pthread_create(&infos.monitor, NULL, philos_monitoring, (void*)&infos);
 	init_threads(&infos);
-	usleep(2000);
-	free_list(infos.philo);
+	usleep(3000);
+	free_list(&infos.philo);
 	return (0);
 }
