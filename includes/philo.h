@@ -49,4 +49,12 @@ int					ft_atoi(const char *nptr);
 long				ft_atol(const char *nptr);
 int					ft_isdigit(int c);
 
+void				init_infos(t_table *infos, char **args, int argc);
+void				*filosofo(void *arg);
+long int			get_real_time(void);
+int					valid_args(int argc, char **args);
+void				free_list(t_philos *philo);
+
+void				new_sleep(long time);
+
 #endif
