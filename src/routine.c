@@ -60,11 +60,12 @@ void	*filosofo(void *arg)
 		usleep(3000);
 	while (philo->status)
 	{
+		/*
 		if (philo->i_eat == infos->times_must_eat)
 		{
 			philo->status = 0;
 			break;
-		}
+		}*/
 		if (philo->status)
 			philo_think(philo, infos);
 		if (philo->status)

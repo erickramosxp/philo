@@ -69,4 +69,5 @@ void	init_infos(t_table *infos, char **args, int argc)
 	infos->philo = NULL;
     infos->philo = start_philos(infos->nb_philo);
     index_philos(infos->philo, infos->nb_philo);
+	pthread_mutex_init(&infos->table_mutex, NULL);
 }

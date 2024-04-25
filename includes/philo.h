@@ -18,13 +18,15 @@ typedef enum status{
 	THINK
 } status;
 
+typedef pthread_mutex_t mutex_p;
+
 typedef struct s_philo
 {
 	int				index;
 	int				can_eat;
 	int				status;
 	pthread_t		philo;
-	pthread_mutex_t	fork;
+	mutex_p			fork;
 	long int		last_time_eat;
 	int				i_eat;
 	struct s_philo	*previous;
@@ -41,6 +43,7 @@ typedef struct s_table
 	int			can_eat;
 	int			flag_can_eat;
 	long int	time_start;
+	mutex_p		table_mutex;
 	pthread_t	monitor;
 	t_philos	*philo;
 }					t_table;

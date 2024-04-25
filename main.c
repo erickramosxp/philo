@@ -84,6 +84,7 @@ void	*philos_monitoring(void *arg)
 	philo = infos->philo;
 	while (1)
 	{
+		pthread_mutex_lock(&infos->table_mutex);
 		if (((get_real_time() - philo->last_time_eat) > infos->time_die)
 			&& philo->status != 0 && philo->status != 2)
 		{
@@ -95,13 +96,19 @@ void	*philos_monitoring(void *arg)
 			pthread_mutex_unlock(&philo->fork);
 			pthread_mutex_unlock(&philo->previous->fork);
 		}
+		pthread_mutex_unlock(&infos->table_mutex);
+
+		pthread_mutex_lock(&infos->table_mutex);
 		if (infos->times_must_eat == philo->i_eat)
 		{
-			//printf("\nEu sou o filosofo %d eu comi %d vezes comforme a entrada %d\n", philo->index, philo->i_eat, infos->can_eat);
 			philo->status = 0;
 		}
+		pthread_mutex_unlock(&infos->table_mutex);
+
+		pthread_mutex_lock(&infos->table_mutex);
 		if (!infos->nb_philo)
 			break ;
+		pthread_mutex_unlock(&infos->table_mutex);
 		if ((infos->flag_can_eat == 1) && all_philos_eat(infos))
 			break ;
 		philo = philo->next;
