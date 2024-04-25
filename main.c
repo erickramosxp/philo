@@ -12,7 +12,6 @@
 
 #include "./includes/philo.h"
 
-
 void	init_threads(t_table *infos)
 {
 	int	i;
@@ -58,10 +57,10 @@ int	long_time_without_eating(t_table *infos)
 	return (index);
 }
 
-int all_philos_eat(t_table *infos)
+int	all_philos_eat(t_table *infos)
 {
-	t_philos *philos;
-	int		amount_philos_eat;
+	t_philos	*philos;
+	int			amount_philos_eat;
 
 	philos = infos->philo;
 	amount_philos_eat = 0;
@@ -75,6 +74,44 @@ int all_philos_eat(t_table *infos)
 	return (1);
 }
 
+void	disable_all_philos(t_table *infos, mutex_p *mutex)
+{
+	int			i;
+	t_philos	*philos;
+
+	philos = infos->philo;
+	i = 0;
+	while (i < infos->nb_philo)
+	{
+		pthread_mutex_lock(mutex);
+		philos->status = 0;
+		pthread_mutex_unlock(mutex);
+		philos = philos->next;
+		i++;
+	}
+}
+
+void	set_status(t_philos *philo, mutex_p *mutex, int philo_status)
+{
+	pthread_mutex_lock(mutex);
+	philo->status = philo_status;
+	pthread_mutex_unlock(mutex);
+}
+
+void	verif_philo_is_dead(t_table *infos, t_philos *philo)
+{
+	pthread_mutex_lock(&philo->fork);
+	if (((get_real_time() - philo->last_time_eat) > infos->time_die)
+		&& philo->status != 0 && philo->status != 2)
+	{
+		philo->status = 0;
+		printf("%ld %d died\n", (get_real_time() - infos->time_start) / 1000,
+			philo->index);
+		infos->nb_philo--;
+	}
+	pthread_mutex_unlock(&philo->fork);
+}
+
 void	*philos_monitoring(void *arg)
 {
 	t_philos	*philo;
@@ -84,7 +121,8 @@ void	*philos_monitoring(void *arg)
 	philo = infos->philo;
 	while (1)
 	{
-		pthread_mutex_lock(&infos->table_mutex);
+		verif_philo_is_dead(infos, philo);
+		/*pthread_mutex_lock(&infos->table_mutex);
 		if (((get_real_time() - philo->last_time_eat) > infos->time_die)
 			&& philo->status != 0 && philo->status != 2)
 		{
@@ -95,18 +133,15 @@ void	*philos_monitoring(void *arg)
 			infos->nb_philo--;
 			pthread_mutex_unlock(&philo->fork);
 			pthread_mutex_unlock(&philo->previous->fork);
-		}
-		pthread_mutex_unlock(&infos->table_mutex);
-
+		}*/
 		pthread_mutex_lock(&infos->table_mutex);
 		if (infos->times_must_eat == philo->i_eat)
 		{
 			philo->status = 0;
 		}
 		pthread_mutex_unlock(&infos->table_mutex);
-
 		pthread_mutex_lock(&infos->table_mutex);
-		if (!infos->nb_philo)
+		if (!infos->flag_can_eat && (infos->nb_philo != infos->philos_dead))
 			break ;
 		pthread_mutex_unlock(&infos->table_mutex);
 		if ((infos->flag_can_eat == 1) && all_philos_eat(infos))
@@ -128,7 +163,7 @@ int	main(int argc, char **argv)
 		return (0);
 	}
 	init_infos(&infos, argv, argc);
-	pthread_create(&infos.monitor, NULL, philos_monitoring, (void*)&infos);
+	pthread_create(&infos.monitor, NULL, philos_monitoring, (void *)&infos);
 	init_threads(&infos);
 	usleep(3000);
 	free_list(infos.philo);

@@ -29,6 +29,8 @@ typedef struct s_philo
 	mutex_p			fork;
 	long int		last_time_eat;
 	int				i_eat;
+	int				get_fork_right;
+	int				get_fork_left;
 	struct s_philo	*previous;
 	struct s_philo	*next;
 }					t_philos;
@@ -42,6 +44,7 @@ typedef struct s_table
 	int			times_must_eat;
 	int			can_eat;
 	int			flag_can_eat;
+	int			philos_dead;
 	long int	time_start;
 	mutex_p		table_mutex;
 	pthread_t	monitor;
