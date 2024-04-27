@@ -1,6 +1,6 @@
 # Philosophers
 
-O projeto Philosophers é uma implementação em C para resolver o problema do jantar dos filósofos. O problema do jantar dos filósofos é um clássico problema de sincronização em computação, que envolve vários filósofos sentados em uma mesa redonda com pratos de macarrão. Entre cada par de pratos, há um garfo. Cada filósofo deve alternar entre pensar e comer, mas só pode comer se puder segurar dois garfos (os que estão ao seu lado). O objetivo do projeto é implementar uma solução que evite deadlock e starvation.
+O projeto Philosophers é uma implementação em C para resolver o problema do jantar dos filósofos. O problema do jantar dos filósofos é um clássico problema de sincronização em computação, que envolve vários filósofos sentados em uma mesa redonda com pratos de macarrão. Entre cada par de pratos, há um garfo. Cada filósofo deve alternar entre pensar, comer e dormir, mas só pode comer se puder segurar dois garfos (os que estão ao seu lado). O objetivo do projeto é implementar uma solução que evite deadlock e starvation.
 
 ## Funcionalidades
 
