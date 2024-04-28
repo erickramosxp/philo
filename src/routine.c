@@ -8,31 +8,23 @@ void	philo_eat(t_philos *philo, t_table *infos)
 	if (philo->status)
 	{
 		pthread_mutex_lock(&philo->previous->fork);
-		printf("%ld %d  has taken a fork\n", (get_real_time() - infos->time_start)
-			/ 1000, philo->index);
+		print_status("has taken a fork\n", (get_real_time() - infos->time_start) / 1000, philo->index, &infos->print_mutex);
 		pthread_mutex_lock(&philo->fork);
-		if (infos->nb_philo > 1 && philo->status)
-		{
-			printf("%ld %d has taken a fork\n", (get_real_time() - infos->time_start)
-				/ 1000, philo->index);
-			printf("%ld %d is eating\n", (get_real_time() - infos->time_start) / 1000,
-				philo->index);
-			philo->status = 2;
-			new_sleep(infos->time_eat);
+
+		print_status("has taken a fork\n", (get_real_time() - infos->time_start) / 1000, philo->index, &infos->print_mutex);
+		print_status("is eating\n", (get_real_time() - infos->time_start) / 1000, philo->index, &infos->print_mutex);
+		philo->status = 2;
+		new_sleep(infos->time_eat);
 		//	usleep(infos->time_eat);
-			philo->last_time_eat = get_real_time();
-			philo->i_eat++;
-			philo->status = 1;
-			pthread_mutex_unlock(&philo->fork);
-			pthread_mutex_unlock(&philo->previous->fork);
-		}
+		philo->last_time_eat = get_real_time();
+		philo->i_eat++;
+		philo->status = 1;
+		pthread_mutex_unlock(&philo->fork);
+		pthread_mutex_unlock(&philo->previous->fork);
 	}
-	// usleep(100);
 }
 void	philo_sleep(t_philos *philo, t_table *infos)
 {
-//	int	new_time;
-
 	if (!philo->status)
 		return ;
 	printf("%ld %d is sleeping\n", (get_real_time() - infos->time_start) / 1000,
@@ -49,6 +41,17 @@ void	philo_think(t_philos *philo, t_table *infos)
 	usleep(infos->time_eat / 100);
 }
 
+int		philo_is_alive(t_philos *philo, mutex_p *status_mutex)
+{
+	pthread_mutex_lock(status_mutex);
+	if (philo->status == 0)
+	{
+		pthread_mutex_unlock(status_mutex);
+		return (0);
+	}
+	return (1);
+}
+
 void	*filosofo(void *arg)
 {
 	t_table		*infos;
@@ -58,14 +61,10 @@ void	*filosofo(void *arg)
 	philo = infos->philo;
 	if (infos->philo->index % 2 == 0)
 		usleep(3000);
-	while (philo->status)
+	while (1)
 	{
-		/*
-		if (philo->i_eat == infos->times_must_eat)
-		{
-			philo->status = 0;
-			break;
-		}*/
+		if (!philo_is_alive(philo, &infos->status_mutex))
+			break ;
 		if (philo->status)
 			philo_think(philo, infos);
 		if (philo->status)

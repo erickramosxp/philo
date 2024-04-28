@@ -47,6 +47,8 @@ typedef struct s_table
 	int			philos_dead;
 	long int	time_start;
 	mutex_p		table_mutex;
+	mutex_p		print_mutex;
+	mutex_p		status_mutex;
 	pthread_t	monitor;
 	t_philos	*philo;
 }					t_table;
@@ -62,5 +64,8 @@ int					valid_args(int argc, char **args);
 void				free_list(t_philos *philo);
 
 void				new_sleep(long time);
+
+void	set_status(int *status, int new_status, mutex_p *status_mutex);
+void	print_status(char *msg, long time_current, int index_philo, mutex_p *print_mutex);
 
 #endif
