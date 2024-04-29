@@ -27,6 +27,8 @@ typedef struct s_philo
 	int				status;
 	pthread_t		philo;
 	mutex_p			fork;
+	mutex_p			set_status;
+	mutex_p			print_status;
 	long int		last_time_eat;
 	int				i_eat;
 	int				get_fork_right;
@@ -47,6 +49,8 @@ typedef struct s_table
 	int			philos_dead;
 	long int	time_start;
 	mutex_p		table_mutex;
+	mutex_p		print_mutex;
+	mutex_p		status_mutex;
 	pthread_t	monitor;
 	t_philos	*philo;
 }					t_table;
@@ -62,5 +66,13 @@ int					valid_args(int argc, char **args);
 void				free_list(t_philos *philo);
 
 void				new_sleep(long time);
+
+void	print_status(char *msg, long time_current, int index_philo, mutex_p *print_mutex);
+
+void	set_status(int *status, int new_status, mutex_p *status_mutex);
+
+t_philos *set_philo(t_table *infos, mutex_p *table);
+
+t_philos *next_philo(t_philos *philo, mutex_p *table);
 
 #endif

@@ -44,6 +44,8 @@ void	index_philos(t_philos *philo, int qtd_philos)
 		philo->i_eat = 0;
 		philo->last_time_eat = get_real_time();
 		pthread_mutex_init(&philo->fork, NULL);
+		pthread_mutex_init(&philo->set_status, NULL);
+		pthread_mutex_init(&philo->print_status, NULL);
 		philo = philo->next;
 		i++;
 	}
@@ -56,6 +58,7 @@ void	init_infos(t_table *infos, char **args, int argc)
 	infos->time_eat = ft_atoi(args[3]) * 1000;
 	infos->time_sleep = ft_atoi(args[4]) * 1000;
 	infos->time_start = get_real_time();
+	infos->philos_dead = infos->nb_philo;
 	if (argc == 6)
 	{
 		infos->times_must_eat = ft_atoi(args[5]);
@@ -70,4 +73,6 @@ void	init_infos(t_table *infos, char **args, int argc)
     infos->philo = start_philos(infos->nb_philo);
     index_philos(infos->philo, infos->nb_philo);
 	pthread_mutex_init(&infos->table_mutex, NULL);
+	pthread_mutex_init(&infos->status_mutex, NULL);
+	pthread_mutex_init(&infos->print_mutex, NULL);
 }

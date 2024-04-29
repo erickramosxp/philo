@@ -98,3 +98,17 @@ void	new_sleep(long time)
 		usleep(100);
 	}
 }
+
+void	print_status(char *msg, long time_current, int index_philo, mutex_p *print_mutex)
+{
+	pthread_mutex_lock(print_mutex);
+	printf("%ld %d %s", time_current, index_philo, msg);
+	pthread_mutex_unlock(print_mutex);
+}
+
+void	set_status(int *status, int new_status, mutex_p *status_mutex)
+{
+	pthread_mutex_lock(status_mutex);
+	*status = new_status;
+	pthread_mutex_unlock(status_mutex);
+}
