@@ -40,7 +40,6 @@ void	index_philos(t_philos *philo, int qtd_philos)
 	{
 		philo->index = i;
 		philo->status = 1;
-		philo->can_eat = 0;
 		philo->i_eat = 0;
 		philo->last_time_eat = get_real_time();
 		pthread_mutex_init(&philo->fork, NULL);

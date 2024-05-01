@@ -23,7 +23,6 @@ typedef pthread_mutex_t mutex_p;
 typedef struct s_philo
 {
 	int				index;
-	int				can_eat;
 	int				status;
 	pthread_t		philo;
 	mutex_p			fork;

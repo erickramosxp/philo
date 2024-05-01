@@ -6,7 +6,7 @@ SANITIZE = -fsanitize=thread
 NAME: all
 
 all:
-	cc -g $(FLAGS) $(addprefix src/, $(SRCS)) main.c -o philo -pthread
+	cc -g $(FLAGS) $(addprefix src/, $(SRCS)) main.c -o philo -pthread $(SANITIZE)
 clean:
 		rm philo
 

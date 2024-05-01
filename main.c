@@ -20,7 +20,9 @@ void	init_threads(t_table *infos)
 	while (i < infos->nb_philo)
 	{
 		pthread_create(&infos->philo->philo, NULL, filosofo, infos);
-		infos->philo = next_philo(infos->philo, &infos->table_mutex);
+		pthread_mutex_lock(&infos->table_mutex);
+		infos->philo = infos->philo->next;
+		pthread_mutex_unlock(&infos->table_mutex);
 		i++;
 		usleep(300);
 	}
@@ -62,41 +64,23 @@ int	all_philos_eat(t_table *infos)
 	t_philos	*philos;
 	int			amount_philos_eat;
 
+	pthread_mutex_lock(&infos->table_mutex);
 	philos = infos->philo;
+	pthread_mutex_unlock(&infos->table_mutex);
 	amount_philos_eat = 0;
 	while (amount_philos_eat < (*infos).nb_philo)
 	{
+	//	pthread_mutex_lock(&infos->table_mutex);
 		if (philos->i_eat != infos->times_must_eat)
+		{
+	//		pthread_mutex_unlock(&infos->table_mutex);
 			return (0);
+		}
 		philos = philos->next;
 		amount_philos_eat++;
 	}
 	return (1);
 }
-/*
-void	disable_all_philos(t_table *infos, mutex_p *mutex)
-{
-	int			i;
-	t_philos	*philos;
-
-	philos = infos->philo;
-	i = 0;
-	while (i < infos->nb_philo)
-	{
-		pthread_mutex_lock(mutex);
-		philos->status = 0;
-		pthread_mutex_unlock(mutex);
-		philos = philos->next;
-		i++;
-	}
-}*/
-/*
-void	set_status(t_philos *philo, mutex_p *mutex, int philo_status)
-{
-	pthread_mutex_lock(mutex);
-	philo->status = philo_status;
-	pthread_mutex_unlock(mutex);
-}*/
 
 void	verif_philo_is_dead(t_table *infos, t_philos *philo)
 {
@@ -105,11 +89,7 @@ void	verif_philo_is_dead(t_table *infos, t_philos *philo)
 		&& philo->status != 0 && philo->status != 2)
 	{
 		set_status(&philo->status, 0, &philo->set_status);
-	//	philo->status = 0;
 		print_status("died\n", (get_real_time() - infos->time_start) / 1000, philo->index, &(infos->print_mutex));
-		
-	/* printf("%ld %d died\n", (get_real_time() - infos->time_start) / 1000,
-			philo->index);*/
 		infos->philos_dead--;
 	}
 	pthread_mutex_unlock(&philo->fork);
@@ -137,14 +117,13 @@ void	*philos_monitoring(void *arg)
 
 	infos = (t_table *)arg;
 	philo = set_philo(infos, &infos->table_mutex);
-//	philo = infos->philo;
 	while (1)
 	{
 		verif_philo_is_dead(infos, philo);
 		pthread_mutex_lock(&infos->table_mutex);
 		if (infos->times_must_eat == philo->i_eat)
 		{
-			philo->status = 0;
+			set_status(&philo->status, 0, &philo->set_status);
 		}
 		pthread_mutex_unlock(&infos->table_mutex);
 		pthread_mutex_lock(&infos->table_mutex);
